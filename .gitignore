@@ -1,0 +1,19 @@
+# Dev tools dirs and files
+.idea
+.cpcache
+.nrepl-port
+*.iml
+
+# Compiled classes
+classes
+target
+
+# Generated during use
+*.pfx
+*.crt
+
+# Logs
+*.log
+
+# Personal Scratch file
+src/bastel_proxy/scratch.clj
