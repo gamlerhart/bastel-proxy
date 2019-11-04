@@ -77,3 +77,5 @@ Install the Clojure command line tool. To build it, run:
 
     clojure -Abuild dist
     
+## Contact
+roman.stoffel@gamlor.info
