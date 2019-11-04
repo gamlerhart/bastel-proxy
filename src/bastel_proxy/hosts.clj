@@ -66,7 +66,6 @@
   Promps for sudo credentials to do so."
   [gain-root-config hosts-file]
   (u/sudo gain-root-config "backup /etc/hosts to /etc/hosts.back" ["cp" "/etc/hosts" "/etc/hosts.back"])
-  (println ["cp" (.getCanonicalPath hosts-file) "/etc/hosts"])
   (u/sudo gain-root-config "write updated /etc/hosts" ["cp" (.getCanonicalPath hosts-file) "/etc/hosts"]))
 
 
