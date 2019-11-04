@@ -17,7 +17,7 @@
    :sites     {}
    })
 
-(defn- deep-merge
+(defn deep-merge
   "Recursively merge two clojure mags"
   [a b]
   (merge-with (fn [x y]
@@ -25,7 +25,6 @@
                   (deep-merge x y)
                   y))
               a b))
-
 
 (defn read-config
   ([fallback]

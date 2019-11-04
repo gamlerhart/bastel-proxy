@@ -1,23 +1,26 @@
 {
- :ports     {:http     {
-                        :port               80
-                        :low-privilige-port 42380
-                        }
-             :https    {
-                        :port               443
-                        :low-privilige-port 42381
-                        }
-             :iptables true}
- :gain-root {
-             :exec         ["sudo" "--stdin"]
-             :ask-password true
-             }
  :sites     {
-             "bastel-proxy.local"         {:files "./"}
+             "bastel-proxy.local" {:files "/home/my-user/some/directory"}
 
              ; Examples
              ; "bastel-proxy.local"           {:files "/home/my-user/some/directory"}
              ; "blog.bastel-proxy.local"      {:proxy-destination "https://gamlor.info"}
              ; "demo.bastel-proxy.local"      {:proxy-destination "http://localhost:8080" :preserve-host false}
              ; "bastel-proxy.local/more"      {:proxy-destination "http://localhost:8081" :preserve-host false}
-             }}
+             }
+ :ports     {:http     {
+                        :port               80
+                        :low-privilege-port 42380
+                        }
+             :https    {
+                        :port               443
+                        :low-privilege-port 42381
+                        }
+             ; Do iptables to redirect priveliged ports to high port numbers
+             :iptables true}
+ ; What command line utils to use to run a script as root
+ :gain-root {
+             :exec         ["sudo" "--stdin"]
+             :ask-password true
+             }
+ }
