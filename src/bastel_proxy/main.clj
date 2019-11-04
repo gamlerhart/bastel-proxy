@@ -22,7 +22,7 @@
 
 (defn first-time-setup [gain-root-config]
   (when (not (.exists (io/file "./root-certs.pfx")))
-    (println "Root certificates not yet installed. The certificates are installed into the trust store of the System, Chrome and Firefox.")
+    (println "Root certificates not yet installed. The certificates are installed into the trust store of the System, Chrome, and Firefox.")
     (println "You can repeat this step later by starting Bastel Proxy with the --install-ca-cert flag")
     (println "Hit enter to continue")
     ; Wait for user to hit enter

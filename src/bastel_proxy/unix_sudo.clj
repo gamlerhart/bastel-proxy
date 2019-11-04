@@ -31,7 +31,7 @@
         (if (< i ask-password-attempts)
           (do
             (println
-              "Please enter password to"
+              "Please enter your password to"
               purpose
               (str "(Attempt " (inc i) " of " ask-password-attempts ")"))
             (recur (inc i) (read-line)))
