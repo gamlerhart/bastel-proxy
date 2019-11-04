@@ -92,6 +92,7 @@
   [server port]
   (let [connector (new ServerConnector server)]
     (.setPort connector port)
+    (.setHost connector "127.0.0.1")
     connector))
 
 (defn- https-connection
@@ -101,6 +102,7 @@
                        server
                        (ssl-context key-store-file))]
     (.setPort connector port)
+    (.setHost connector "127.0.0.1")
     connector))
 
 (defn sites-domains [sites]
