@@ -8,9 +8,15 @@
 (def uninstall-ip-tables-script (.getCanonicalPath (File. "." "iptable-uninstall.sh")))
 (def ask-password-attempts 3)
 (def new-line (System/getProperty "line.separator"))
+
+(defn password->stdin [password]
+  (if (empty? password)
+    password
+    (str password new-line)))
 (defn password-valid? [gain-root-config password]
   (if (:ask-password gain-root-config)
-    (let [command (concat (:exec gain-root-config) ["id" :in (str password new-line)])
+    (let [pwd-std (password->stdin password)
+          command (concat (:exec gain-root-config) ["id" :in pwd-std])
           result (apply sh/sh command)]
       (= 0 (:exit result)))
     true))
@@ -42,7 +48,7 @@
   (let [password (ask-password gain-root-config purpose)
         cmd (concat (:exec gain-root-config)
                      cmd
-                     [:in (str password new-line)])
+                     [:in (password->stdin password)])
         result (apply sh/sh cmd)]
     (.append *out* (:out result))
     (.append *out* new-line)
@@ -57,7 +63,6 @@
   ([script config]
    (run-ip-tables-script script (:ports config) (:gain-root config)))
    ([script ports gain-root-config]
-    (println ports)
     (let [http (:http ports)
           http-src (:port http)
           http-dst (:low-privilege-port http)

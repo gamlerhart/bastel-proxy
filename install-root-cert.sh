@@ -5,15 +5,23 @@
 # Tested on:
 #   - Ubuntu 18.04
 
+echo "Import CA (do-not-trust-bastel-proxy-root) to distro's trust store"
+
 WORKING_DIR=$(dirname "$0")
 cd ${WORKING_DIR}
+
+# use explicit passed in home directory when available
+if [[ $1 != "" ]]; then
+    export HOME=$1
+fi
 
 # Extract the certificate from the keystore
 openssl pkcs12 -passin 'pass:' -in root-certs.pfx -nokeys -cacerts -out root-cert.crt
 
-which certutil
+which certutil 2>&1
 if [[ $? -ne 0 ]]; then
-    apt install libnss3-tools
+    echo "Installing certutil to import CA into Browsers trust store"
+    apt install -y libnss3-tools
     which certutil
     if [[ $? -ne 0 ]]; then
         >&2 echo "certutil is not installed. Cannot import certificates. Please install certutil"
@@ -21,15 +29,13 @@ if [[ $? -ne 0 ]]; then
     fi
 fi
 
-echo "Import CA (do-not-trust-bastel-proxy-root) to Distro trust store"
-
 CERT_NAME="DO NOT TRUST Bastel Proxy"
 # Reference used on how to install the certificates in different places
 # Arch Linux, Fedora
-which trust
+which trust 2>&1
 TRUST_EXISTS=$?
 # Debian, Ubuntu
-which update-ca-certificates
+which update-ca-certificates 2>&1
 UPDATE_CA_EXISTS=$?
 if [[ $TRUST_EXISTS -eq 0 ]]; then
     trust anchor --store root-cert.crt
@@ -46,12 +52,12 @@ if [[ $UPDATE_CA_EXISTS -eq 0 ]]; then
     cp root-cert.crt /usr/local/share/ca-certificates/do-not-trust-bastel-proxy-root.crt
     update-ca-certificates
 fi
-if [[ $UPDATE_CA_EXISTS -ne 0 ]] && [[ $UPDATE_CA_EXISTS -ne 0 ]]; then
+if [[ $TRUST_EXISTS -ne 0 ]] && [[ $UPDATE_CA_EXISTS -ne 0 ]]; then
     echo "Couldn't install certificates in this Linux distribution. Please install the root-cert.crt manually"
 fi
 
 echo "Import CA (do-not-trust-bastel-proxy-root) to Firefox and Chromium"
-for CERT_DB in $(find  ~/.mozilla* ~/.pki ~/snap/chromium -name "cert9.db" 2>/dev/null)
+for CERT_DB in $(find $HOME/.mozilla* $HOME/.pki $HOME/snap/chromium -name "cert9.db" 2>/dev/null)
 do
   CERT_DIR=$(dirname ${CERT_DB});
   certutil -A -n "${CERT_NAME}" -t "TCu,Cuw,Tuw" -i root-cert.crt -d sql:${CERT_DIR}
@@ -67,8 +73,6 @@ if [[ -f $JAVA_HOME/bin/keytool ]]; then
     elif [[ -f "$JAVA_HOME/lib/security/cacerts" ]]; then
         $JAVA_KEYTOOL -importcert -alias do-not-trust-bastel-proxy-root -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -file root-cert.crt
     else
-        echo "Coudln't find Java cert store. Did not import into JDK root store"
+        echo "Could not find Java cert store. Did not import into JDK root store. \$JAVA_HOME not set"
     fi
 fi
-
-
