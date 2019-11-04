@@ -5,10 +5,6 @@
             [clojure.java.io :as io]
             [clojure.string :as str]
             [bastel-proxy.unix-sudo :as u])
-  (:import (org.eclipse.jetty.util.log Log)
-           (java.io PrintStream)
-           (java.nio.file Files Paths)
-           (java.nio.charset StandardCharsets))
   (:gen-class))
 
 (defn configure-logging []
@@ -32,7 +28,6 @@
     ; Wait for user to hit enter
     (read-line)
     (install-ca-cert gain-root-config)))
-
 
 (defn restart []
   (let [config (c/read-config)]
@@ -114,4 +109,5 @@ Press enter to stop watching config.edn")
    (shutdown-agents))
   ([]
    (configure-logging)
+   (println "No arguments provided, will start proxy and watch configuration. Use --help to see available flags")
    (-main "watch")))
