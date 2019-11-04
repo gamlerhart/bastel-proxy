@@ -184,7 +184,6 @@
   [config]
   (try
     (do
-      (println "Try" (:ports config))
       (let [s (do-start-server config (:ports config))]
         (print-info config false)
         s))
@@ -193,7 +192,7 @@
         (if (can-redirect-ports config)
           (let [http-config (-> config :ports :http)
                 https-config (-> config :ports :https)]
-            (println "Failed to bind port. Will bind to high number port and redirect via iptables")
+            (println "Failed to bind" (:port http-config) (:port https-config)  "ports. Will bind to high number port and redirect via iptables")
             (if (and (is-redirected http-config) (is-redirected http-config))
               (println "Redirecting iptables already installed. Skipping installation")
               (u/redirect-ports config))
@@ -218,5 +217,5 @@
          (fn [s]
            (when s
              (.stop s)
-             (println "Stopped Bastel-Proxy"))
+             (println "Restarting Bastel-Proxy"))
            (do-start-handle-port-issues config))))
