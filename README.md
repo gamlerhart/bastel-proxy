@@ -19,28 +19,35 @@ Let's say we host it on the 'local.my-company.com'. Then the configuration `conf
 
 
     {
-        :sites     {
-                 "local.my-company.com"            {:proxy-destination "http://localhost:3001"} ;Main page dev node service
-                 "local.my-company.com/store"      {:proxy-destination "http://localhost:3002"} ;Store dev node service
-                 "local.my-company.com/store"      {:proxy-destination "https://my-company.com/blog"} ;Mirror production
-                 "support.local.my-company.com"    {:proxy-destination "http://localhost:8080"} ;Support dev Java service
-                 "api.local.my-company.com"        {:proxy-destination "http://localhost:4001"} ;Our dev .NET service
-                 }
+        :sites  
+        {
+            "local.my-company.com"            {:proxy-destination "http://localhost:3001"} ;Main page dev node service
+            "local.my-company.com/store"      {:proxy-destination "http://localhost:3002"} ;Store dev node service
+            "local.my-company.com/store"      {:proxy-destination "https://my-company.com/blog"} ;Mirror production
+            "support.local.my-company.com"    {:proxy-destination "http://localhost:8080"} ;Support dev Java service
+            "api.local.my-company.com"        {:proxy-destination "http://localhost:4001"} ;Our dev .NET service
+        }
     }
 
 Bastel Proxy will create HTTPS certificates, add the domain entries to your `/etc/hosts` and serves the 
 'local.my-company.com' domain. That's it. It doesn't provide complex configuration or needs any special setup.
 
 ## Requirements and Setup.
-Currently Linux is supported. Windows support follows soon.
+Currently Linux is supported. 
 You need Java 8 or newer installed. Unpack the bastel-proxy.tar.gz file to your desired location. 
 Then run `bastel-proxy.sh`. The Bastel-Proxy will start and might prompt you for your root/admin password to install
-it's CA into the trust stores. And on Linux to bind the privileged HTTP 80 and HTTPS 443 ports.
+its CA certificate into the trust stores. Futhermore the root/admin password is used
+to update the `/etc/hosts` file to redirect the specified domain to 127.0.0.0 and on Linux to bind the privileged 
+HTTP 80 and HTTPS 443 ports.
 
-After
+After it is running, you should be able to navigate to a site specified in the config. It should work
+as HTTP and HTTPS site.
+
+Bastel Proxy keeps watching the config file and reload it when it changes. It might prompt again
+for root/admin passwords if you change the domains to update the `/etc/hosts` file.
 
 ## Domains
-Bastel proxy updates the `/etc/hosts` file and adds the domain, pointing to 127.0.0.1
+Bastel proxy updates the `/etc/hosts` file and adds the domain, pointing to 127.0.0.1.
 
 ## HTTPS Certificates
 Bastel Proxy does automatically create HTTPS certificates for the domains. To do that it creates
@@ -54,7 +61,7 @@ Bastel Proxy installs it in following trust stores:
 - Java if $JAVA_HOME is set
 
 ## Port Handling
-On Linux the HTTP port 80 and HTTPS port 443 required priviliged access. To avoid running Bastel Proxy as root
+On Linux the HTTP port 80 and HTTPS port 443 required privileged access. To avoid running Bastel Proxy as root
 it will install a ip table route to redirect these ports to high ports 42380 and 42381.
 
 IP tables are cleared on reboot. Or you can run `bastel-proxy.sh --iptables-uninstall` to uninstall the iptables
