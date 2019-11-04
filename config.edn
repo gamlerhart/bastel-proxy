@@ -8,6 +8,7 @@
              ; "demo.bastel-proxy.local"      {:proxy-destination "http://localhost:8080" :preserve-host false}
              ; "bastel-proxy.local/more"      {:proxy-destination "http://localhost:8081" :preserve-host false}
              }
+ ; Optional sections. When left out these defaults will be used
  :ports     {:http     {
                         :port               80
                         :low-privilege-port 42380
