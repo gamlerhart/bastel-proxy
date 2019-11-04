@@ -20,13 +20,14 @@
   ([gain-root-config]
    "Installs the Bastel-Proxy root CA certificate into known trust stores"
    (crt/load-or-create-root)
-   (u/sudo gain-root-config "install CA to trust stores" ["bash" "install-root-cert.sh"])
+   (u/sudo gain-root-config "install CA to trust stores" ["bash" "install-root-cert.sh" (System/getProperty "user.home")])
    (println "Installed Bastel-Proxy root-cert.crt certificate in known CA locations."))
   ([] (install-ca-cert (:gain-root (c/read-config)))))
 
 (defn first-time-setup [gain-root-config]
   (when (not (.exists (io/file "./root-certs.pfx")))
     (println "Root certificates not yet installed. The certificates are installed into the trust store of the System, Chrome and Firefox.")
+    (println "You can repeat this step later by starting Bastel Proxy with the --install-ca-cert flag")
     (println "Hit enter to continue")
     ; Wait for user to hit enter
     (read-line)
@@ -105,11 +106,12 @@ Press enter to stop watching config.edn")
      "help" (print-help)
      "--repl" (start-repl)
      "--iptables-uninstall" (iptables-uninstall)
+     "--install-ca-cert" (install-ca-cert)
      "watch" (do
                (do-start-watching-config)
-               (stop)
-               (shutdown-agents))
-     (print-help)))
+               (stop))
+     (print-help))
+   (shutdown-agents))
   ([]
    (configure-logging)
    (-main "watch")))
