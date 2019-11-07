@@ -9,8 +9,11 @@
   [result]
   (.append *out* (:out result))
   (.append *out* new-line)
+  (.flush *out*)
+  (println "WHat is goint on? " result)
   (when (not-empty (:err result))
     (.append *err* (:err result))
     (.append *err* new-line))
   (when (not= 0 (:exit result))
-    (.append *err* (str "Failed to execute. Exit code " (:exit result) new-line))))
+    (.append *err* (str "Failed to execute. Exit code " (:exit result) new-line)))
+  (.flush *err*))

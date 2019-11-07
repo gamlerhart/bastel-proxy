@@ -15,6 +15,13 @@
 (configure-logging)
 
 (defn powershell [script]
+  ; Strip 'File was downloaded from internet' marker blocking execution
+  ; When the zip file is downloaded and unpacked by the Windows built in tool, then the scripts are marked as internet downloaded.
+  (println (str "Unblock-File \"" (.getCanonicalPath (io/file script)) "\"; echo Hmm"))
+  (let [result (sh/sh "powershell.exe" "-NoProfile" "-ExecutionPolicy" "Unrestricted" "-Command"
+                      (str "Unblock-File \"" (.getCanonicalPath (io/file script)) "\"; echo Hmm"))]
+    (m/print-sh-out result))
+  (println "hmmm...")
   (let [result (sh/sh "powershell.exe" "-NoProfile" "-ExecutionPolicy" "Unrestricted" "-file" (.getCanonicalPath (io/file script)))]
     (m/print-sh-out result)))
 

@@ -76,6 +76,7 @@
   (copy-to-dist "./README.md")
   (copy-to-dist "./LICENSE.txt")
   (copy-to-dist "./install-root-cert.sh")
+  (copy-to-dist "./install-root-cert.ps1")
   (copy-to-dist "./iptable-install.sh")
   (copy-to-dist "./iptable-uninstall.sh")
   (sh-check "chmod" "+x" "./target/bastel-proxy/bastel-proxy.sh")

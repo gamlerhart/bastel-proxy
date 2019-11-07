@@ -1,6 +1,6 @@
 {
  :sites     {
-             "bastel-proxy.local" {:files "./"}
+             "gamlor.local" {:files "./"}
 
              ; Examples
              ; "bastel-proxy.local"           {:files "/home/my-user/some/directory"}

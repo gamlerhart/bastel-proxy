@@ -1,11 +1,11 @@
-
 # Evaluate this script
-#If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
-#{
-#    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
-#    Start-Process powershell -Verb runAs -ArgumentList $arguments -Wait
-#    Break
-#}
+If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
+{
+   $arguments = "-NoProfile -ExecutionPolicy Unrestricted -File `"$PSScriptRoot\install-root-cert.ps1`""
+   echo $arguments
+   Start-Process powershell -Verb runAs -ArgumentList $arguments -Wait
+   Break
+}
 
 function SetRegistry($RegPath, $KeyName, $Value, $RegType)
 {
@@ -34,15 +34,6 @@ echo "If Firefox, restart it to access bastel proxy sites"
 
 
 if (Test-Path env:JAVA_HOME) {
-
-    echo "Evaluate to admin to update Java trust store"
-    If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
-    {
-        $arguments = "& '" + $myinvocation.mycommand.definition + "'"
-        Start-Process powershell -Verb runAs -ArgumentList $arguments -Wait
-        Break
-    }
-
     $JavaKeyTool="$env:JAVA_HOME/bin/keytool.exe"
     if (Test-Path "$env:JAVA_HOME\jre\lib\security\cacerts"){
         &$JavaKeyTool -importcert -alias do-not-trust-bastel-proxy-root -keystore "$env:JAVA_HOME/jre/lib/security/cacerts" -storepass changeit -file "$PSScriptRoot\root-cert.crt" -noprompt
@@ -51,9 +42,9 @@ if (Test-Path env:JAVA_HOME) {
     } else {
         echo "Could not find Java cert store. Did not import into JDK root store. \$JAVA_HOME not set"
     }
-    echo "Certificates imported"
-    pause
 } else {
-    echo "Certificates imported"
+    echo "JAVA_HOME not defined. Skipped import to Java trust store"
 }
+echo "Certificates imported. Hit enter to complete"
+pause
 
