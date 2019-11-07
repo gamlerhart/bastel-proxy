@@ -1,8 +1,8 @@
 # Bastel Proxy
 
-Your website or application is split across different HTTPs services. In production you use 
-a complex load balancer which does the HTTPs termination and unites the services. You want 
-to have HTTPS and mirror the URL layout, without hasstling with certificates and complex 
+Your website or application is split across different HTTPs services. In production, you use 
+a complex load balancer, which does the HTTPs termination and unites the services. You want 
+to have HTTPS and mirror the URL layout, without hassling with certificates and complex 
 load balancer configuration. Bastel Proxy is a reverse proxy supporting HTTPS, intended
 for development environments.
 
@@ -59,6 +59,11 @@ Bastel Proxy installs it in following trust stores:
 - Chrome: $HOME/.pki/nssdb
 - Firefox: $HOME/.mozilla/firefox/{profile}/cert9.db
 - Java if $JAVA_HOME is set
+
+On Windows the CA certificate is imported into the User's root store. Chrome will read if from there.
+For Firefox Bastel Proxy enables 
+(https://support.mozilla.org/en-US/kb/setting-certificate-authorities-firefox)['ImportEnterpriseRoots'/security.enterprise_roots.enabled option]
+to read the certificate from the Windows trust store. 
 
 ## Port Handling
 On Linux the HTTP port 80 and HTTPS port 443 required privileged access. To avoid running Bastel Proxy as root
