@@ -10,7 +10,6 @@
   (.append *out* (:out result))
   (.append *out* new-line)
   (.flush *out*)
-  (println "WHat is goint on? " result)
   (when (not-empty (:err result))
     (.append *err* (:err result))
     (.append *err* new-line))
