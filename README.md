@@ -51,7 +51,7 @@ Bastel proxy updates the `/etc/hosts` file and adds the domain, pointing to 127.
 
 ## HTTPS Certificates
 Bastel Proxy does automatically create HTTPS certificates for the domains. To do that it creates
-it's own CA and installs it into known trust stores. The root CA is written to `root-cert.crt`. You
+its own CA and installs it into known trust stores. The root CA is written to `root-cert.crt`. You
 can install in other locations.
 
 Bastel Proxy installs it in following trust stores:
@@ -68,7 +68,7 @@ IP tables are cleared on reboot. Or you can run `bastel-proxy.sh --iptables-unin
 manually.
 
 ## Windows Support
-Is coming =)
+Bastel Proxy should work on Windows. Instead of a sudo prompt you get evaluate prompts. 
 
 ## Source Code, Building it:
 The source code is hosted at https://github.com/gamlerhart/bastel-proxy.
