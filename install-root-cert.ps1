@@ -30,6 +30,8 @@ echo "Enable Firefox to trust Windows Certificates"
 SetRegistry 'HKCU:\Software\Policies\Mozilla\Firefox\Certificates' 'ImportEnterpriseRoots' 1 'DWORD'
 echo "Enabled Firefox to trust Windows Certificates"
 
+echo "If Firefox, restart it to access bastel proxy sites"
+
 
 if (Test-Path env:JAVA_HOME) {
 
