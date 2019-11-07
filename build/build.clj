@@ -12,10 +12,11 @@
   (:import (java.nio.file Path Files CopyOption StandardCopyOption Paths)
            (java.io File)))
 
-(def ^Path out-path (badigeon.bundle/make-out-path 'info.gamlor/bastel-proxy "0.1"))
+(def ^Path out-path (badigeon.bundle/make-out-path 'info.gamlor/bastel-proxy "0.2"))
 (def ^Path dist-path (.getPath (io/file "./target/dist")))
 (def jar-name (str out-path ".jar"))
 (def final-dist-tar (.getCanonicalPath (io/file "./target/bastel-proxy.tar.gz")))
+(def final-dist-zip (.toPath (io/file "./target/bastel-proxy.zip")))
 
 (defn javac []
   (println "Compiling Java")
@@ -79,7 +80,9 @@
   (copy-to-dist "./iptable-uninstall.sh")
   (sh-check "chmod" "+x" "./target/bastel-proxy/bastel-proxy.sh")
   (sh-check "tar" "czfv" final-dist-tar "./bastel-proxy" :dir "./target/")
-  (println "Distribution build. Result: " final-dist-tar))
+  (zip/zip (.toPath (io/file "./target/bastel-proxy")) final-dist-zip)
+  (println "Distribution build. Result: " final-dist-tar)
+  (println "Distribution build. Result: " final-dist-zip))
 
 (defn -main
   ([]
