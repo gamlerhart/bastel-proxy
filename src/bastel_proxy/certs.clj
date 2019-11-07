@@ -8,7 +8,10 @@
            (java.util Date)
            (org.bouncycastle.asn1.x509 Extension BasicConstraints GeneralNames GeneralName)
            (org.bouncycastle.operator.jcajce JcaContentSignerBuilder)
-           (java.security.cert Certificate X509Certificate)))
+           (java.security.cert Certificate X509Certificate)
+           (org.bouncycastle.openssl PEMWriter)
+           (java.io FileWriter)
+           (org.bouncycastle.openssl.jcajce JcaPEMWriter)))
 
 (def default-root-store "root-certs.pfx")
 (def default-password "")
@@ -88,6 +91,18 @@
        store)))
   ([]
    (load-or-create-root default-root-store default-password)))
+
+(defn export-cert
+  "Store the certificate in PEM format to a file"
+  [cert file]
+  (with-open [writer (FileWriter. file)
+              pem-writer (JcaPEMWriter. writer)]
+      (.writeObject pem-writer cert)))
+
+(defn root-cert
+  "Return the root certificate from the store"
+  [store]
+  (.getCertificate store root-name))
 
 (defn store-cert [store name password]
   "Load the certificate from the store, including it's ::private-key, ::issuer etc"

@@ -4,7 +4,9 @@
             [bastel-proxy.certs :as crt]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [bastel-proxy.unix-sudo :as u])
+            [bastel-proxy.unix-sudo :as u]
+            [bastel-proxy.misc :as m]
+            [clojure.java.shell :as sh])
   (:gen-class))
 
 (defn configure-logging []
@@ -12,11 +14,21 @@
 
 (configure-logging)
 
+(defn powershell [script]
+  (let [result (sh/sh "powershell.exe" "-NoProfile" "-ExecutionPolicy" "Unrestricted" "-file" (.getCanonicalPath (io/file script)))]
+    (m/print-sh-out result)))
+
+(defn install-certs [gain-root-config]
+  (if m/is-windows
+    (powershell "install-root-cert.ps1")
+    (u/sudo gain-root-config "install CA to trust stores" ["bash" "install-root-cert.sh" (System/getProperty "user.home")])))
+
 (defn install-ca-cert
   ([gain-root-config]
    "Installs the Bastel-Proxy root CA certificate into known trust stores"
-   (crt/load-or-create-root)
-   (u/sudo gain-root-config "install CA to trust stores" ["bash" "install-root-cert.sh" (System/getProperty "user.home")])
+   (let [store (crt/load-or-create-root)]
+     (crt/export-cert (crt/root-cert store) "root-cert.crt"))
+   (install-certs gain-root-config)
    (println "Installed Bastel-Proxy root-cert.crt certificate in known CA locations."))
   ([] (install-ca-cert (:gain-root (c/read-config)))))
 

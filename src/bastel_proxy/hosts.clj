@@ -1,16 +1,16 @@
 (ns bastel-proxy.hosts
   (:require [clojure.string :as str]
-            [bastel-proxy.unix-sudo :as u])
+            [bastel-proxy.unix-sudo :as u]
+            [bastel-proxy.misc :as m])
   (:import (java.io File)))
 
-(def is-windows (str/includes? (str/lower-case (System/getProperty "os.name")) "win"))
 (def line-separator (System/lineSeparator))
 
 (def hosts-start-marker "#start Bastel-Proxy-entries")
 (def hosts-end-marker "#end Bastel-Proxy-entries")
 
 (defn read-hosts []
-  (if is-windows
+  (if m/is-windows
     (slurp "C:\\Windows\\system32\\drivers\\etc\\hosts")
     (slurp "/etc/hosts")))
 
@@ -58,7 +58,8 @@
                     ["@echo off"
                      "if not \"%1\"==\"am_admin\" (powershell start -verb runas '%0' am_admin & exit)"
                      "copy /Y C:\\Windows\\system32\\drivers\\etc\\hosts C:\\Windows\\system32\\drivers\\etc\\hosts.bak"
-                     (str "copy /Y " (.getCanonicalFile hosts-file) " C:\\Windows\\system32\\drivers\\etc\\hosts")]))
+                     (str "copy /Y " (.getCanonicalFile hosts-file) " C:\\Windows\\system32\\drivers\\etc\\hosts")
+                     (str "del " (.getCanonicalFile hosts-file))]))
     (apply clojure.java.shell/sh (concat ["cmd" "/c" "start" (.getAbsolutePath update-cmds)]))))
 
 (defn unix-copy-new-hosts
@@ -75,13 +76,18 @@
   (let [new-host-file (doto (File/createTempFile "hosts" ".txt") (.deleteOnExit))
         old-entry (read-hosts)
         updated (create-new-host-file hosts)]
+    (println old-entry)
+    (println "--------")
+    (println updated)
     (when (not (= old-entry updated))
       (spit new-host-file updated)
-      (if is-windows
+      (if m/is-windows
         (windows-copy-new-hosts new-host-file)
         (unix-copy-new-hosts gain-root-config new-host-file))
-      (.delete new-host-file)
-      )))
+      ; On Windows we launch a separate console windows with UAC prompt. We don't know what the users clicks and when it's donw
+      ; Therefore the temp file is cleaned up later by the script.
+      (when (not m/is-windows)
+        (.delete new-host-file)))))
 
 (defn host-entries
   "Points the list of hosts to the ip, for the /etc/hosts file.

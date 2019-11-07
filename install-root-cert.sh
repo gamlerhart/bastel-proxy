@@ -15,8 +15,6 @@ if [[ $1 != "" ]]; then
     export HOME=$1
 fi
 
-# Extract the certificate from the keystore
-openssl pkcs12 -passin 'pass:' -in root-certs.pfx -nokeys -cacerts -out root-cert.crt
 
 which certutil 2>&1
 if [[ $? -ne 0 ]]; then

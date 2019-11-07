@@ -3,7 +3,8 @@
             [bastel-proxy.certs :as crt]
             [bastel-proxy.unix-sudo :as u]
             [bastel-proxy.hosts :as h]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [bastel-proxy.misc :as m])
   (:import (java.net InetAddress UnknownHostException SocketException ServerSocket SocketAddress InetSocketAddress Socket)
            (org.eclipse.jetty.server.handler HandlerCollection)
            (org.eclipse.jetty.servlet DefaultServlet ServletHolder ServletContextHandler)
@@ -135,7 +136,7 @@
     server))
 
 (defn- can-redirect-ports [config]
-  (and (:gain-root config) (u/has-iptables) (-> config :ports :iptables)))
+  (and (:gain-root config) (not m/is-windows) (u/has-iptables) (-> config :ports :iptables)))
 
 (defn- is-port-permission-error [e]
   (let [msg (.getMessage e)

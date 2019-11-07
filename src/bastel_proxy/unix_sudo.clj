@@ -1,18 +1,18 @@
 (ns bastel-proxy.unix-sudo
   (:require [clojure.string :as str]
             [clojure.java.shell :as sh]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [bastel-proxy.misc :as m])
   (:import (java.io File IOException)))
 
 (def install-ip-tables-script (.getCanonicalPath (File. "." "iptable-install.sh")))
 (def uninstall-ip-tables-script (.getCanonicalPath (File. "." "iptable-uninstall.sh")))
 (def ask-password-attempts 3)
-(def new-line (System/getProperty "line.separator"))
 
 (defn password->stdin [password]
   (if (empty? password)
     password
-    (str password new-line)))
+    (str password m/new-line)))
 (defn password-valid? [gain-root-config password]
   (if (:ask-password gain-root-config)
     (let [pwd-std (password->stdin password)
@@ -50,13 +50,7 @@
                      cmd
                      [:in (password->stdin password)])
         result (apply sh/sh cmd)]
-    (.append *out* (:out result))
-    (.append *out* new-line)
-    (when (not-empty (:err result))
-      (.append *err* (:err result))
-      (.append *err* new-line))
-    (when (not= 0 (:exit result))
-      (.append *err* (str "Failed to redirect ports. Exit code " (:exit result) new-line)))
+    (m/print-sh-out result)
     result))
 
 (defn- run-ip-tables-script
