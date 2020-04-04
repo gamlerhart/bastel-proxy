@@ -23,7 +23,8 @@
 
 
 (defn ask-password [gain-root-config purpose]
-  (if (or (password-valid? gain-root-config "") (:ask-password gain-root-config))
+  (if (or (password-valid? gain-root-config "") (not (:ask-password gain-root-config)))
+    ""
     (loop [i 0
            password ""]
       (if (password-valid? gain-root-config password)
@@ -35,8 +36,7 @@
               purpose
               (str "(Attempt " (inc i) " of " ask-password-attempts ")"))
             (recur (inc i) (read-line)))
-          password)))
-    ""))
+          password)))))
 
 (defn has-iptables []
   (try
