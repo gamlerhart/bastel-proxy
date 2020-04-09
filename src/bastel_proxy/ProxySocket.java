@@ -20,6 +20,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
@@ -57,10 +58,18 @@ public class ProxySocket extends ProxyServlet.Transparent {
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String target = rewriteTarget(request);
-        if (isWebsocketUpgradeRequest(request, target)) {
-            upgradeToWebsocket(request, response, target);
-        } else {
-            super.service(request, response);
+        try{
+            if (isWebsocketUpgradeRequest(request, target)) {
+                upgradeToWebsocket(request, response, target);
+            } else {
+                super.service(request, response);
+            }
+        } catch (Exception e){
+            String query = request.getQueryString();
+            String queryLog = query == null || query.isEmpty() ? "" : "?"+query;
+            System.out.println("Internal error handling "+request.getRequestURL()+queryLog+
+                    ", check logs at " + (new File("bastel-proxy.log").getCanonicalPath()));
+            throw e;
         }
     }
 
