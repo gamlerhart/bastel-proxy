@@ -5,7 +5,7 @@
             [bastel-proxy.hosts :as h]
             [clojure.java.io :as io]
             [bastel-proxy.misc :as m])
-  (:import (java.net InetAddress UnknownHostException SocketException ServerSocket SocketAddress InetSocketAddress Socket)
+  (:import (java.net InetAddress UnknownHostException SocketException ServerSocket SocketAddress InetSocketAddress Socket URI)
            (org.eclipse.jetty.server.handler HandlerCollection)
            (org.eclipse.jetty.servlet DefaultServlet ServletHolder ServletContextHandler)
            (org.eclipse.jetty.server ServerConnector Connector Server)
@@ -29,12 +29,17 @@
     (.setInitParameters holder params)
     holder))
 
+(defn- throw-invalid-format [message invalid-value]
+  (throw (Exception. (str message " Got: " invalid-value " Check your config.edn file"))))
+
 (defn- new-proxy
   "HTTP proxy handler:
   destination: destination URL, like http://localhost:8080, http://localhost:8080/my-service
   preserveHost?: Foward the original Host header?
   url-rewrite function rewriting url. string->string"
   [destination preserveHost? url-rewrite]
+  (when (not (#{"http" "https"} (.getScheme (URI. destination))))
+    (throw-invalid-format "Unsupported site configuration. :proxy-destination needs to http or https. " destination))
   (let [forwarder (ProxySocket. url-rewrite)
         holder (new ServletHolder forwarder)
         params (if preserveHost?
@@ -50,8 +55,7 @@
                                   (:proxy-destination site-config)
                                   (get site-config :preserve-host false)
                                   (get site-config :url-rewrite identity))
-    :else (throw
-            (Exception. (str "Unsupported site configuration. Expect a :files or :proxy-destination. Got" site-config)))))
+    :else (throw-invalid-format "Unsupported site configuration. Expect a :files or :proxy-destination. " site-config)))
 
 (defn- sites->jetty-handlers
   "Converts the sites into a jetty handler collection"
