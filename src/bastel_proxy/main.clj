@@ -10,6 +10,7 @@
   (:gen-class))
 
 (defn configure-logging []
+  (println "Logs are in" (.getCanonicalPath (io/file "bastel-proxy.log")))
   (System/setProperty "org.slf4j.simpleLogger.logFile" "bastel-proxy.log"))
 
 (configure-logging)
