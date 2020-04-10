@@ -1,13 +1,16 @@
 (ns bastel-proxy.hosts
   (:require [clojure.string :as str]
             [bastel-proxy.unix-sudo :as u]
-            [bastel-proxy.misc :as m])
+            [bastel-proxy.misc :as m]
+            [clojure.string :as s])
   (:import (java.io File)))
 
 (def line-separator (System/lineSeparator))
 
-(def hosts-start-marker "#start Bastel-Proxy-entries")
-(def hosts-end-marker "#end Bastel-Proxy-entries")
+; Rebindable for testing purpose
+(def ^:dynamic *binding-marker* "Bastel-Proxy-entries")
+(defn hosts-start-marker [] (str "#start " *binding-marker*))
+(defn hosts-end-marker [] (str "#end " *binding-marker*))
 
 (defn read-hosts []
   (if m/is-windows
@@ -27,24 +30,24 @@
     127.0.0.1       example.domain
     #end Bastel-Proxy-entries\n
   "
-  [host-entries]
+  [existing host-entries]
   (let [line-sep-len (.length line-separator)
-        existing (read-hosts)
         start-idx (or
-                    (some-> (str/index-of existing hosts-start-marker) (- line-sep-len))
+                    (some-> (str/index-of existing (hosts-start-marker)) (- line-sep-len))
                     (.length existing))
         end-idx (or
-                  (some-> (str/index-of existing hosts-end-marker) (+ (.length hosts-end-marker) line-sep-len))
+                  (some-> (str/index-of existing (hosts-end-marker))
+                          (+ (.length (hosts-end-marker)) line-sep-len))
                   (.length existing))
         start (subs existing 0 start-idx)
         end (subs existing end-idx (.length existing))]
     (str start
          line-separator
-         hosts-start-marker
+         (hosts-start-marker)
          line-separator
          host-entries
          line-separator
-         hosts-end-marker
+         (hosts-end-marker)
          line-separator
          end)))
 
@@ -75,7 +78,7 @@
   Other hosts entries are left alone. Prompts for Admin/sudo permissions"
   (let [new-host-file (doto (File/createTempFile "hosts" ".txt") (.deleteOnExit))
         old-entry (read-hosts)
-        updated (create-new-host-file hosts)]
+        updated (create-new-host-file (read-hosts) hosts)]
     (println old-entry)
     (println "--------")
     (println updated)
@@ -96,7 +99,8 @@
   127.0.0.1  sub.domain"
   [hosts ip]
   (let [hosts (distinct hosts)
-        mapping (reduce (fn [s h] (str s line-separator ip "\t" h)) "" hosts)]
+        host-lines (map (fn [h] (str ip "\t" h)) hosts)
+        mapping (s/join line-separator host-lines)]
     mapping))
 
 (defn update-hosts [gain-root-config hosts]

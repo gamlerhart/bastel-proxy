@@ -82,5 +82,11 @@ Install the Clojure command line tool. To build it, run:
 
     clojure -Abuild dist
     
+Run tests:
+
+    clojure -Atest
+    # With include end to end tests, might prompt you for your root password
+    
+    
 ## Contact
 roman.stoffel@gamlor.info
