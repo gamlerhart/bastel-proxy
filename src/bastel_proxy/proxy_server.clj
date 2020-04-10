@@ -128,7 +128,7 @@
         handler (sites->jetty-handlers sites)
         http (if-let [port (-> ports :http :port)] (http-connection server port))
         https (if-let [port (-> ports :https :port)] (https-connection server port key-store-file))
-        connectors [http https]
+        connectors (filter #(not (nil? %)) [http https])
         server (doto server
                  (.setConnectors (into-array Connector connectors))
                  (.setHandler handler))]
@@ -145,7 +145,8 @@
 (defn- is-port-permission-error [e]
   (let [msg (.getMessage e)
         cause (.getCause e)]
-    (or (.contains msg "Permission") (when cause (is-port-permission-error cause)))))
+    (or (and msg (.contains msg "Permission"))
+      (when cause (is-port-permission-error cause)))))
 
 (defn protocol-info-string [ports-config]
   (if (some-> ports-config :https :port ) "https" "http"))
