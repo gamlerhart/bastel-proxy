@@ -11,7 +11,7 @@
            (org.eclipse.jetty.server ServerConnector Connector Server)
            (java.io IOException InputStreamReader)
            (bastel_proxy ProxySocket)
-           (org.eclipse.jetty.util.ssl SslContextFactory)
+           (org.eclipse.jetty.util.ssl SslContextFactory SslContextFactory$Server)
            (java.util UUID)))
 
 (defonce last-server (atom nil))
@@ -84,7 +84,7 @@
 (defn- ssl-context
   "Creates a SSLContex for HTTPS using the specified key-store"
   [key-store-file]
-  (let [ssl (new SslContextFactory)
+  (let [ssl (SslContextFactory$Server.)
         excluded-protocols (into [] (.getExcludeProtocols ssl))]
     (doto ssl
       (.setKeyStorePath key-store-file)
