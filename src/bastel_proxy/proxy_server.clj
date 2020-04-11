@@ -82,7 +82,7 @@
     handler-collection))
 
 (defn- ssl-context
-  "Creates a SSLContex for HTTPS using the specified key-store"
+  "Creates a SSLContext for HTTPS using the specified key-store"
   [key-store-file]
   (let [ssl (SslContextFactory$Server.)
         excluded-protocols (into [] (.getExcludeProtocols ssl))]
