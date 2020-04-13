@@ -4,15 +4,18 @@
             [bastel-proxy.unix-sudo :as u]
             [bastel-proxy.hosts :as h]
             [clojure.java.io :as io]
-            [bastel-proxy.misc :as m])
+            [bastel-proxy.misc :as m]
+            [ring.util.servlet]
+            [bastel_proxy.servlet_request])
   (:import (java.net InetAddress UnknownHostException SocketException ServerSocket SocketAddress InetSocketAddress Socket URI)
            (org.eclipse.jetty.server.handler HandlerCollection)
-           (org.eclipse.jetty.servlet DefaultServlet ServletHolder ServletContextHandler)
+           (org.eclipse.jetty.servlet DefaultServlet ServletHolder ServletContextHandler FilterHolder)
            (org.eclipse.jetty.server ServerConnector Connector Server)
-           (java.io IOException InputStreamReader)
-           (bastel_proxy ProxySocket)
-           (org.eclipse.jetty.util.ssl SslContextFactory SslContextFactory$Server)
-           (java.util UUID)))
+           (bastel_proxy ProxySocket RequestFilter RequestFilter$FilterResult)
+           (org.eclipse.jetty.util.ssl SslContextFactory$Server)
+           (java.util UUID EnumSet)
+           (javax.servlet.http HttpServletRequest HttpServletResponse)
+           (javax.servlet Servlet DispatcherType)))
 
 (defonce last-server (atom nil))
 
@@ -32,10 +35,12 @@
 (defn- throw-invalid-format [message invalid-value]
   (throw (Exception. (str message " Got: " invalid-value " Check your config.edn file"))))
 
+
 (defn- new-proxy
   "HTTP proxy handler:
   destination: destination URL, like http://localhost:8080, http://localhost:8080/my-service
   preserveHost?: Foward the original Host header?
+  request-rewrite function to replace the original request
   url-rewrite function rewriting url. string->string"
   [destination preserveHost? url-rewrite]
   (when (not (#{"http" "https"} (.getScheme (URI. destination))))
@@ -47,6 +52,38 @@
                  {"proxyTo" destination})]
     (.setInitParameters holder params)
     holder))
+
+(defn no-op-request-filter [request]
+  nil)
+
+(defonce global-request-filter (atom no-op-request-filter))
+
+(defn intercept-requests
+  "Start intercepting requests with the specified function. Function takes a request in Ring format,
+  return nil to not alter any behavior, return a {:request {ring-request-map}} to change the request
+  or return a {:response {ring-response-map}} to handle the request completely"
+  [fn] (reset! global-request-filter fn))
+
+
+(defn stop-intercepting-requests
+  "Stop intercepting requests and let the pass"
+  []
+  (reset! global-request-filter no-op-request-filter))
+
+(defn request-filter-for-java [^HttpServletRequest request ^HttpServletResponse response]
+  (let [ring-request (ring.util.servlet/build-request-map request)
+        filtered (@global-request-filter ring-request)
+        filtered-req (bastel_proxy.servlet_request/replace-request (:request filtered) request)
+        filtered-response (if (:response filtered)
+                            (do
+                              (ring.util.servlet/update-servlet-response response (:response filtered))
+                              true)
+                            false
+                            )
+        java-filtered (RequestFilter$FilterResult. filtered-req filtered-response)]
+    java-filtered))
+
+(def global-request-filter-obj (RequestFilter. request-filter-for-java))
 
 (defn- handler [site-config]
   (cond
@@ -66,7 +103,7 @@
     (doseq [site-config sort-by-longer-prefix]
       (let [[site site-config] site-config
             [domain path] (split-domain-path site)
-            forwarder (handler site-config)
+            ^Servlet forwarder (handler site-config)
             handler (ServletContextHandler. handler-collection (str "/" path))]
         (when domain
           (do
@@ -77,6 +114,7 @@
                      "ERROR: Cannot resolve "
                      domain
                      "Check your host file if this hostname points to your localhost")))))
+        (.addFilter handler (FilterHolder. global-request-filter-obj) "/*" (EnumSet/of DispatcherType/REQUEST))
         (.addServlet handler forwarder "/*")
         handler))
     handler-collection))
@@ -225,3 +263,22 @@
              (.stop s)
              (println "Restarting Bastel-Proxy"))
            (do-start-handle-port-issues config))))
+
+
+
+(comment
+  (intercept-requests
+    ; The function is called for each request, using the Ring format https://github.com/ring-clojure/ring
+    ; return nil will process the request as is, returning {:response { ring-response-map }} will return the specified response
+    ; and returning {:request {ring-request-map}} will use that request to pass through
+    (fn [req]
+      (cond
+        ; Example Add a header to the /admin page request before sending it along.
+        (str/starts-with? (:uri req) "/admin") {:request
+                                                (assoc-in req [:headers "X-Secret"] "a-secret")}
+        ; Example Respond with 403 for all /forbidden pages
+        (str/starts-with? (:uri req) "/forbidden") {:response
+                                                    {:status 403 :body "nope, forbidden"}}
+        ; Other requests pass through
+        :else nil)
+      )))

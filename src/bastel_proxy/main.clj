@@ -1,12 +1,13 @@
 (ns bastel-proxy.main
   (:require [bastel-proxy.config :as c]
-            [bastel-proxy.proxy-server :as s]
+            [bastel-proxy.proxy-server :as s :refer [intercept-requests stop-intercepting-requests]]
             [bastel-proxy.certs :as crt]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [bastel-proxy.unix-sudo :as u]
             [bastel-proxy.misc :as m]
-            [clojure.java.shell :as sh])
+            [clojure.java.shell :as sh]
+            [clojure.repl])
   (:gen-class))
 
 (defn configure-logging []
@@ -101,11 +102,13 @@ Arguments:
   (println '(print-repl-help) "Print this help")
   (println '(start-watching-config) "Start Bastel-Proxy and watch the config.edn for changes.
 Restarts and applies and changes to config.edn file.
-Press enter to stop watching config.edn")
+Press enter to stop watching.")
   (println '(restart) "Restart the Bastel-Proxy")
   (println '(stop) "Stop the Bastel-Proxy")
   (println '(install-ca-cert) "Installs the Bastel-Proxy root CA into known trust stores")
   (println '(iptables-uninstall) "Uninstall the Bastel Proxy iptables. IP tables are cleared on reboot")
+  (println '(intercept-requests) "Install a request filter for all requests passing through the proxy")
+  (println '(stop-intercepting-requests) "Uninstalls any request filter from the proxy")
   )
 
 (defn start-repl []

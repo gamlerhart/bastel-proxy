@@ -185,7 +185,7 @@ public class ProxySocket extends ProxyServlet.Transparent {
     @Override
     protected void addProxyHeaders(HttpServletRequest clientRequest, Request proxyRequest) {
         super.addProxyHeaders(clientRequest, proxyRequest);
-        String schema = clientRequest.getRequestURL().toString().split(":")[0];
+        String schema = clientRequest.getScheme();
         proxyRequest.header("Original-Request-Scheme", schema);
     }
 
@@ -204,8 +204,7 @@ public class ProxySocket extends ProxyServlet.Transparent {
     @Override
     protected String rewriteTarget(HttpServletRequest request) {
         String target =  super.rewriteTarget(request);
-        String finalTarget = (String)urlRewrite.invoke(target);
-        return finalTarget;
+        return (String)urlRewrite.invoke(target);
     }
 
     private final WebSocketServlet webSockets = new WebSocketServlet() {

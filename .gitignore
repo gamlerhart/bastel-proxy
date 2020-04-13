@@ -1,6 +1,7 @@
 # Dev tools dirs and files
 .idea
 .cpcache
+out
 .nrepl-port
 *.iml
 

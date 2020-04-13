@@ -33,10 +33,10 @@ Bastel Proxy will create HTTPS certificates, add the domain entries to your `/et
 'local.my-company.com' domain. That's it. It doesn't provide complex configuration or needs any special setup.
 
 ## Requirements and Setup.
-Currently Linux is supported. 
+Currently, Linux and Windows is supported. 
 You need Java 8 or newer installed. Unpack the bastel-proxy.tar.gz file to your desired location. 
-Then run `bastel-proxy.sh`. The Bastel-Proxy will start and might prompt you for your root/admin password to install
-its CA certificate into the trust stores. Futhermore the root/admin password is used
+Then run `bastel-proxy.sh`/`bastel-proxy.bat`. The Bastel-Proxy will start and might prompt you for your root/admin 
+password to install its CA certificate into the trust stores. Furthermore, the root/admin password is used
 to update the `/etc/hosts` file to redirect the specified domain to 127.0.0.0 and on Linux to bind the privileged 
 HTTP 80 and HTTPS 443 ports.
 
@@ -74,6 +74,56 @@ manually.
 
 ## Windows Support
 Bastel Proxy should work on Windows. Instead of a sudo prompt you get evaluate prompts. 
+
+## Advanced REPL
+You can use Bastel-Proxy in a REPL mode for advanced features. Start it with the `--repl` argument.
+
+
+```
+$bastel-proxy.sh --repl
+Logs are in /home/gamlor/hacking/bastel-proxy/bastel-proxy.log
+Interactive Clojure REPL. Useful functions:
+(print-repl-help) Print this help
+(start-watching-config) Start Bastel-Proxy and watch the config.edn for changes.
+Restarts and applies and changes to config.edn file.
+Press enter to stop watching config.edn
+(restart) Restart the Bastel-Proxy
+(stop) Stop the Bastel-Proxy
+(install-ca-cert) Installs the Bastel-Proxy root CA into known trust stores
+(iptables-uninstall) Uninstall the Bastel Proxy iptables. IP tables are cleared on reboot
+(intercept-requests) Install a request filter for all requests passing through the proxy
+(stop-intercepting-requests) Uninstalls any request filter from the proxy
+bastel-proxy.main=>
+```
+
+In the REPL mode Bastel Proxy doesn't immediately start. The REPL uses [Clojure](https://clojure.org) as the language.
+You have to start it with `(restart)` or start and keep watching the 
+config.edn with `(start-watching-config)`
+
+### Intercept requests
+In the REPL you can intercept requests by providing a function which changes requests.
+The function can change the request, give a response or let request process normally:
+
+```
+(intercept-requests
+    ; The function is called for each request, using the Ring format https://github.com/ring-clojure/ring
+    ; return nil will process the request as is, returning {:response { ring-response-map }} will return the specified response
+    ; and returning {:request {ring-request-map}} will use that request to pass through
+    (fn [req]
+      (cond
+        ; Example Add a header to the /admin page request before sending it along.
+        (str/starts-with? (:uri req) "/admin") {:request
+                                                (assoc-in req [:headers "X-Secret"] "a-secret")}
+        ; Example Respond with 403 for all /forbidden pages
+        (str/starts-with? (:uri req) "/forbidden") {:response
+                                                    {:status 403 :body "nope, forbidden"}}
+        ; Other requests pass through
+        :else nil)
+      ))
+```
+
+You can stop the intercepting with `(stop-intercepting-requests)`
+
 
 ## Source Code, Building it:
 The source code is hosted at https://github.com/gamlerhart/bastel-proxy.

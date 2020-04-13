@@ -7,7 +7,9 @@
            org.slf4j/slf4j-simple                        {:mvn/version "1.7.30"}
            org.eclipse.jetty.websocket/websocket-servlet {:mvn/version "9.4.28.v20200408"}
            org.eclipse.jetty.websocket/websocket-server  {:mvn/version "9.4.28.v20200408"}
-           org.eclipse.jetty.websocket/websocket-client  {:mvn/version "9.4.28.v20200408"}}
+           org.eclipse.jetty.websocket/websocket-client  {:mvn/version "9.4.28.v20200408"}
+           ring/ring-core                                {:mvn/version "1.8.0"}
+           ring/ring-servlet                             {:mvn/version "1.8.0"}}
  :aliases {
            :run      {:main-opts ["-m" "bastel-proxy.main"]}
            :test     {:extra-paths ["test"]
