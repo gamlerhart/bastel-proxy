@@ -9,7 +9,6 @@
            (org.bouncycastle.asn1.x509 Extension BasicConstraints GeneralNames GeneralName)
            (org.bouncycastle.operator.jcajce JcaContentSignerBuilder)
            (java.security.cert Certificate X509Certificate)
-           (org.bouncycastle.openssl PEMWriter)
            (java.io FileWriter)
            (org.bouncycastle.openssl.jcajce JcaPEMWriter)))
 

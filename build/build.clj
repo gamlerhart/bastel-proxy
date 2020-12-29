@@ -2,7 +2,7 @@
   (:require [badigeon.javac :as javac]
             [badigeon.clean :as clean]
             [badigeon.uberjar :as uberjar]
-            [clojure.tools.deps.alpha.reader :as deps-reader]
+            [clojure.tools.deps.alpha :as deps]
             [badigeon.jar :as jar]
             [badigeon.zip :as zip]
             [badigeon.compile :as compile]
@@ -12,7 +12,7 @@
   (:import (java.nio.file Path Files CopyOption StandardCopyOption Paths)
            (java.io File)))
 
-(def ^Path out-path (badigeon.bundle/make-out-path 'info.gamlor/bastel-proxy "0.2"))
+(def ^Path out-path (badigeon.bundle/make-out-path 'info.gamlor/bastel-proxys "0.2"))
 (def ^Path dist-path (.getPath (io/file "./target/dist")))
 (def jar-name (str out-path ".jar"))
 (def final-dist-tar (.getCanonicalPath (io/file "./target/bastel-proxy.tar.gz")))
@@ -33,7 +33,7 @@
                    {:compile-path "classes"})
   (uberjar/bundle out-path
                   {;; A map with the same format than deps.edn. :deps-map is used to resolve the project resources.
-                   :deps-map                    (deps-reader/slurp-deps "deps.edn")
+                   :deps-map                    (deps/slurp-deps (io/file "deps.edn"))
                    ;; Set to true to allow local dependencies and snapshot versions of maven dependencies.
                    :allow-unstable-deps?        true
                    ;; When set to true and resource conflicts are found, then a warning is printed to *err*
@@ -43,15 +43,11 @@
     out-path
     (fn [dir f] (when (or (.endsWith (str f) ".clj"))
                   (java.nio.file.Files/delete f))))
-  (java.nio.file.Files/delete (.resolve out-path "META-INF/BC1024KE.DSA"))
-  (java.nio.file.Files/delete (.resolve out-path "META-INF/BC1024KE.SF"))
-  (java.nio.file.Files/delete (.resolve out-path "META-INF/BC2048KE.DSA"))
-  (java.nio.file.Files/delete (.resolve out-path "META-INF/BC2048KE.SF"))
   ;; Output a MANIFEST.MF file defining 'badigeon.main as the main namespace
   (spit (str (badigeon.utils/make-path out-path "META-INF/MANIFEST.MF"))
         (jar/make-manifest 'bastel-proxy.main))
   ;; Return the paths of all the resource conflicts (multiple resources with the same path) found on the classpath.
-  (uberjar/find-resource-conflicts {:deps-map (deps-reader/slurp-deps "deps.edn")})
+  ;(uberjar/find-resource-conflicts {:deps-map (deps/slurp-deps (io/file "deps.edn"))})
   ;; Zip the bundle into an uberjar
   (zip/zip out-path jar-name)
   (println "Uberjar built. Result: " jar-name))
@@ -83,17 +79,17 @@
   (sh-check "tar" "czfv" final-dist-tar "./bastel-proxy" :dir "./target/")
   (zip/zip (.toPath (io/file "./target/bastel-proxy")) final-dist-zip)
   (println "Distribution build. Result: " final-dist-tar)
-  (println "Distribution build. Result: " final-dist-zip))
+  (println "Distribution build. Result: " final-dist-zip)
 
-(defn -main
-  ([]
-   (println "Using default command: javac. Available commands: javac, uberjar")
-   (javac)
-   (shutdown-agents))
-  ([command]
-   (condp = command
-     "javac" (javac)
-     "uberjar" (uberjar)
-     "dist" (dist)
-     (println "Unknown command:" command))
-   (shutdown-agents)))
+  (defn -main
+    ([]
+     (println "Using default command: javac. Available commands: javac, uberjar")
+     (javac)
+     (shutdown-agents))
+    ([command]
+     (condp = command
+       "javac" (javac)
+       "uberjar" (uberjar)
+       "dist" (dist)
+       (println "Unknown command:" command))
+     (shutdown-agents))))

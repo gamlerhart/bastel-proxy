@@ -43,7 +43,7 @@ public class ProxySocket extends ProxyServlet.Transparent {
     /**
      * Websocket client, used when fording servlet sockets instead of http traffic
      */
-    private final WebSocketClient client = new WebSocketClient(new SslContextFactory.Client());
+    private final WebSocketClient client = new WebSocketClient(newHttpClient());
 
     /**
      * Rewrite the url passed through the proxy

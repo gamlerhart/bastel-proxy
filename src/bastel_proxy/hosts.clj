@@ -73,12 +73,12 @@
   (u/sudo gain-root-config "write updated /etc/hosts" ["cp" (.getCanonicalPath hosts-file) "/etc/hosts"]))
 
 
-(defn update-hosts-file [gain-root-config hosts]
+(defn update-hosts-file [gain-root-config hosts-text]
   "Updates the hosts managed by Bastel-Proxy in the /etc/hosts file.
   Other hosts entries are left alone. Prompts for Admin/sudo permissions"
   (let [new-host-file (doto (File/createTempFile "hosts" ".txt") (.deleteOnExit))
         old-entry (read-hosts)
-        updated (create-new-host-file (read-hosts) hosts)]
+        updated (create-new-host-file (read-hosts) hosts-text)]
     (println old-entry)
     (println "--------")
     (println updated)
